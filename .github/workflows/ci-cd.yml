@@ -1,0 +1,58 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  lint_and_test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Run code linting
+        run: |
+          cd ./vote
+          npm install
+          npm run lint
+
+      - name: Run tests
+        run: |
+          cd ./vote
+          npm install
+          npm test
+
+  build_and_push:
+    runs-on: ubuntu-latest
+    needs: lint_and_test
+    if: github.event_name == 'push'
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        env:
+          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+          DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        run: echo "${DOCKER_HUB_PASSWORD}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
+
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/vote-app:latest .
+
+      # Test the Docker image by running a temporary container
+      - name: Test Docker image
+        run: docker run -d --name test-container -p 8080:80 ${{ secrets.DOCKER_HUB_USERNAME }}/vote-app:latest
+      - name: Check if container is running
+        run: docker ps | grep test-container
+      - name: Remove test container
+        run: docker rm -f test-container
+
+      - name: Push Docker image to Docker Hub
+        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/vote-app:latest
