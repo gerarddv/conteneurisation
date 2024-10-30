@@ -2,6 +2,7 @@ version: '3'
 services:
   proxy:
     build: ./proxy
+    image: gerarddv/myapp-proxy:latest
     container_name: proxy
     ports:
       - "80:80"
@@ -10,9 +11,10 @@ services:
 
   vote:
     build: ./vote
+    image: gerarddv/myapp-vote:latest
     container_name: vote
     ports:
-      - "8081:80"  # Use ports to map container's port 80 to host's 8081
+      - "8081:80"  # Maps container port 80 to host port 8081
     volumes:
       - ./vote:/app
     networks:
@@ -21,9 +23,10 @@ services:
 
   result:
     build: ./result
+    image: gerarddv/myapp-result:latest
     container_name: results
     ports:
-      - "8000:80"  # Use ports to map container's port 80 to host's 8000
+      - "8000:80"  # Maps container port 80 to host port 8000
     volumes:
       - ./result:/app
     networks:
@@ -32,20 +35,21 @@ services:
 
   worker:
     build: ./worker
+    image: gerarddv/myapp-worker:latest
     container_name: worker
     networks:
       - backend
 
   redis:
-    image: redis:alpine
+    image: gerarddv/myapp-redis:latest
     container_name: redis
     expose:
-      - "6379"  # Expose only container port 6379 to other containers
+      - "6379"  # Exposes container port 6379 within the backend network
     networks:
       - backend
 
   db:
-    image: postgres:9.4
+    image: gerarddv/myapp-db:latest
     container_name: db
     volumes:
       - /var/lib/postgresql/data
@@ -53,7 +57,7 @@ services:
       POSTGRES_USER: "postgres"
       POSTGRES_PASSWORD: "postgres"
     expose:
-      - "5432"  # Expose only container port 5432 to other containers
+      - "5432"  # Exposes container port 5432 within the backend network
     networks:
       - backend
 
