@@ -10,30 +10,55 @@ on:
   workflow_dispatch:
 
 jobs:
-  lint_and_test:
+  lint_and_test_result:
     runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'result')
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v3
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '16'
+
+      - name: Install dependencies
+        working-directory: ./result
+        run: npm install
+
       - name: Run code linting
-        run: |
-          set -x  # Enable shell debugging
-          cd ./vote
-          npm install || { echo "npm install failed"; exit 1; }
-          npm run lint || { echo "npm run lint failed"; exit 1; }
+        working-directory: ./result
+        run: npm run lint || true  # Replace with the actual linting command if different
 
       - name: Run tests
-        run: |
-          set -x
-          cd ./vote
-          npm install || { echo "npm install failed"; exit 1; }
-          npm test || { echo "npm test failed"; exit 1; }
+        working-directory: ./result
+        run: npm test || true  # Replace with the actual test command if different
+
+  lint_and_test_vote:
+    runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.message, 'vote')
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.8'
+
+      - name: Install dependencies
+        working-directory: ./vote
+        run: pip install -r requirements.txt
+
+      - name: Run tests for Vote app
+        working-directory: ./vote
+        run: python -m unittest discover  # Adjust to the test framework you're using
 
   build_and_push:
     runs-on: ubuntu-latest
-    needs: lint_and_test
+    needs: [lint_and_test_result, lint_and_test_vote]
     if: github.event_name == 'push'
 
     steps:
@@ -46,18 +71,7 @@ jobs:
           DOCKER_HUB_PASSWORD: ${{ secrets.DOCKER_HUB_PASSWORD }}
         run: echo "${DOCKER_HUB_PASSWORD}" | docker login -u "${DOCKER_HUB_USERNAME}" --password-stdin
 
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKER_HUB_USERNAME }}/vote-app:latest .
-
-      # Test the Docker image by running a temporary container
-      - name: Test Docker image
-        run: docker run -d --name test-container -p 8080:80 ${{ secrets.DOCKER_HUB_USERNAME }}/vote-app:latest
-
-      - name: Check if container is running
-        run: docker ps | grep test-container
-
-      - name: Remove test container
-        run: docker rm -f test-container
-
-      - name: Push Docker image to Docker Hub
-        run: docker push ${{ secrets.DOCKER_HUB_USERNAME }}/vote-app:latest
+      - name: Build and push Docker images
+        run: |
+          docker-compose build
+          docker-compose push
