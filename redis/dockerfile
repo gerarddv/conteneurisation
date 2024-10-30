@@ -1,0 +1,5 @@
+# Dockerfile pour le service redis
+FROM redis:alpine
+
+# Exposez le port 6379 sur l'hôte
+EXPOSE 6379

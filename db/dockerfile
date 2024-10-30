@@ -1,0 +1,9 @@
+# Dockerfile pour le service db
+FROM postgres:9.4
+
+# Répertoire de travail
+WORKDIR /var/lib/postgresql/data
+
+# Variables d'environnement pour la base de données
+ENV POSTGRES_USER=postgres
+ENV POSTGRES_PASSWORD=postgres
