@@ -15,19 +15,21 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v3  # Updated to v3 to avoid deprecation warnings
+        uses: actions/checkout@v3
 
       - name: Run code linting
         run: |
+          set -x  # Enable shell debugging
           cd ./vote
-          npm install
-          npm run lint || true  # Temporarily allowing lint to continue on failure to see errors
+          npm install || { echo "npm install failed"; exit 1; }
+          npm run lint || { echo "npm run lint failed"; exit 1; }
 
       - name: Run tests
         run: |
+          set -x
           cd ./vote
-          npm install
-          npm test || true  # Temporarily allowing tests to continue on failure to see errors
+          npm install || { echo "npm install failed"; exit 1; }
+          npm test || { echo "npm test failed"; exit 1; }
 
   build_and_push:
     runs-on: ubuntu-latest
@@ -36,7 +38,7 @@ jobs:
 
     steps:
       - name: Checkout source code
-        uses: actions/checkout@v3  # Updated to v3 for consistency
+        uses: actions/checkout@v3
 
       - name: Log in to Docker Hub
         env:
