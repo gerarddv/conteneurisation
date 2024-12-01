@@ -1,0 +1,24 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: result
+  labels:
+    app: result
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: result
+  template:
+    metadata:
+      labels:
+        app: result
+    spec:
+      containers:
+        - name: result
+          image: gerarddv/myapp-result:latest
+          command: ["nodemon"]          # Use nodemon as the command
+          args: ["app.js"]              # Specify the correct script (update as necessary)
+          ports:
+            - containerPort: 8000       # Ensure this matches the app's listening port
+          resources: {}

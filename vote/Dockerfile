@@ -12,45 +12,24 @@
 
 # Define the command to be run when launching the container : `python app.py`
 
-
-
-
-# Use official python runtime base image
+# Use official Python runtime base image
 FROM python:latest
 
-# Set the container application directory to /app
+# Set the working directory inside the container
 WORKDIR /app
 
-# Add requirements.txt to container folder /app/requirements.txt
-COPY requirements.txt .
+# Copy the requirements file to the container
+COPY requirements.txt /app/
 
-# Execute pip install -r requirements.txt
+# Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copy our code from the current folder to /app inside the container
-COPY . .
+# Copy the application code to the container
+COPY . /app/
 
-#Make port 80 available for links and/or publish
+# Expose port 80 for the application
 EXPOSE 80
 
-# Define the command to be run when launching the container
-CMD ["python", "app.py"] #Use official python runtime base image
-FROM python:latest
+# Define the command to run the application
+CMD ["python", "/app/app.py"]
 
-# Set the container application directory to /app
-WORKDIR /app
-
-# Add requirements.txt to container folder /app/requirements.txt
-COPY requirements.txt .
-
-# Execute pip install -r requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy our code from the current folder to /app inside the container
-COPY . .
-
-#Make port 80 available for links and/or publish
-EXPOSE 80
-
-#Define the command to be run when launching the container
-CMD ["python", "app.py"]

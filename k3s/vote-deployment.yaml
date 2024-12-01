@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vote
+  labels:
+    app: vote
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vote
+  template:
+    metadata:
+      labels:
+        app: vote
+    spec:
+      containers:
+        - name: vote
+          image: gerarddv/myapp-vote:latest
+          command: ["python"]  # Explicitly run Python
+          args: ["/app/app.py"]  # Point to the app.py file
+          ports:
+            - containerPort: 80
+      volumes:
+        - name: vote-volume
+          persistentVolumeClaim:
+            claimName: vote-claim0
+      restartPolicy: Always
